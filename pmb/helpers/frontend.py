@@ -4,6 +4,8 @@ import json
 import logging
 import os
 import sys
+import glob
+import shlex
 
 import pmb.aportgen
 import pmb.build
@@ -108,6 +110,42 @@ def checksum(args):
             pmb.build.checksum.verify(args, package)
         else:
             pmb.build.checksum.update(args, package)
+
+
+def sideload(args):
+    files = []
+    paths = []
+    arch = args.deviceinfo["arch"]
+    user = args.user
+    if args.username is not None:
+        user = args.username
+
+    for pkgname in args.packages:
+        pmb.build.package(args, pkgname, arch)
+        data_repo = pmb.parse.apkindex.package(args, pkgname, arch, True)
+        apk_file = pkgname + "-" + data_repo["version"] + ".apk"
+        host_path = os.path.join(args.work, "packages", arch, apk_file)
+        paths.append(host_path)
+        files.append("/tmp/" + apk_file)
+
+    if args.trust:
+        keys = glob.glob(os.path.join(args.work, "config_abuild", "*.pub"))
+        key = keys[0]
+        command = ['scp', key, '{}@{}:/tmp'.format(user, args.host)]
+        pmb.helpers.run.user(args, command, output="stdout")
+        keyname = os.path.join("/tmp", os.path.basename(key))
+        remote_cmd = ['sudo', '-S', 'mv', '-n', keyname, "/etc/apk/keys/"]
+        remote_cmd = shlex.join(remote_cmd)
+        command = ['ssh', '{}@{}'.format(user, args.host), remote_cmd]
+        pmb.helpers.run.user(args, command, output="tui")
+
+    command = ['scp'] + paths + ['{}@{}:/tmp'.format(user, args.host)]
+    pmb.helpers.run.user(args, command, output="stdout")
+    add_cmd = ['sudo', '-S', 'apk', 'add'] + files
+    clean_cmd = ['rm'] + files
+    remote_cmd = shlex.join(add_cmd) + " ; " + shlex.join(clean_cmd)
+    command = ['ssh', '{}@{}'.format(user, args.host), remote_cmd]
+    pmb.helpers.run.user(args, command, output="tui")
 
 
 def chroot(args):
