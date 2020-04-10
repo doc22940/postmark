@@ -453,7 +453,8 @@ def finish(args, apkbuild, arch, output, strict=False, suffix="native"):
     Various finishing tasks that need to be done after a build.
     """
     # Verify output file
-    path = args.work + "/packages/" + output
+    channel = pmb.config.pmaports.read_config(args)["channel"]
+    path = f"{args.work}/packages/{channel}/{output}"
     if not os.path.exists(path):
         raise RuntimeError("Package not found after build: " + path)
 
