@@ -42,6 +42,8 @@ def sanity_check(info, path):
         raise RuntimeError("deviceinfo_date was replaced by deviceinfo_year. "
                            "Set it to the release year in: " + path)
 
+    # TODO Complain if deviceinfo_chassis hasn't been set?
+
     # "codename" is required
     codename = os.path.basename(os.path.dirname(path))
     if codename.startswith("device-"):

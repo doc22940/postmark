@@ -259,6 +259,7 @@ deviceinfo_attributes = [
     "arch",
 
     # device
+    "chassis",
     "keyboard",
     "external_storage",
     "screen_width",
@@ -301,6 +302,20 @@ deviceinfo_attributes = [
 
     # keymaps
     "keymaps",
+]
+
+# Valid types for the 'chassis' atribute in deviceinfo
+# See https://www.freedesktop.org/software/systemd/man/machine-info.html
+deviceinfo_chassis_types = [
+    "desktop",
+    "laptop",
+    "convertible",
+    "server",
+    "tablet",
+    "handset",
+    "watch",
+    "embedded",
+    "vm"
 ]
 
 #
