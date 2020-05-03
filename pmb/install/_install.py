@@ -279,10 +279,24 @@ def setup_hostname(args):
         raise RuntimeError("Hostname '" + hostname + "' is not valid, please"
                            " run 'pmbootstrap init' to configure it.")
 
-    # Update /etc/hosts
+    info = pmb.parse.deviceinfo(args, device=args.device)
+    chassis = info["chassis"]
+    # "chassis" is currently optional, default to "handset"
+    if not chassis:
+        chassis = "handset"
+
     suffix = "rootfs_" + args.device
+    # Generate /etc/hostname
     pmb.chroot.root(args, ["sh", "-c", "echo " + shlex.quote(hostname) +
                            " > /etc/hostname"], suffix)
+    # Generate /etc/machine-info
+    pmb.chroot.root(args, ["sh", "-c", "echo " +
+                           shlex.quote("PRETTY_HOSTNAME=\"" + info["name"] + "\"") +
+                           " > /etc/machine-info"], suffix)
+    pmb.chroot.root(args, ["sh", "-c", "echo " +
+                           shlex.quote("CHASSIS=\"" + chassis + "\"") +
+                           " >> /etc/machine-info"], suffix)
+    # Update /etc/hosts
     regex = (r"s/^127\.0\.0\.1.*/127.0.0.1\t" + re.escape(hostname) +
              " localhost.localdomain localhost/")
     pmb.chroot.root(args, ["sed", "-i", "-e", regex, "/etc/hosts"], suffix)
