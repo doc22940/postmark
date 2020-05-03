@@ -251,6 +251,6 @@ def generate(args, pkgname):
         bootimg = ask_for_bootimg(args)
 
     generate_deviceinfo(args, pkgname, name, manufacturer, year, arch,
-                        has_keyboard, has_external_storage,
+                        chassis, has_keyboard, has_external_storage,
                         flash_method, bootimg)
     generate_apkbuild(args, pkgname, name, arch, flash_method)
